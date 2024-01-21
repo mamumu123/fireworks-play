@@ -1,0 +1,68 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+	<title>play</title>
+</head>
+
+<body onselectstart="return false">
+	<canvas id='cas' style="background-color:rgba(0,5,24,1)">浏览器不支持canvas</canvas>
+	<script>
+		var canvas = document.getElementById("cas");
+		var ctx = canvas.getContext("2d");
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		window.onload = function () {
+			initAnimate();
+		};
+
+		function initAnimate () {
+			drawBg();
+		}
+
+
+		var maxRadius = 1, stars = [];
+		function drawBg () {
+			for (var i = 0; i < 500; i++) {
+				var r = Math.random() * maxRadius;
+				var x = Math.random() * canvas.width;
+				var y = Math.random() * 2 * canvas.height - canvas.height;
+				var star = new Star(x, y, r);
+				stars.push(star);
+				star.paint();
+			}
+
+		}
+
+		var Star = function (x, y, r) {
+			this.x = x; this.y = y; this.r = r;
+		};
+		Star.prototype = {
+			paint: function () {
+				ctx.save();
+				ctx.beginPath();
+				ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+				ctx.fillStyle = "rgba(255,255,255," + this.r + ")";
+				ctx.fill();
+				ctx.restore();
+			}
+		};
+
+	</script>
+	<script>
+		var _hmt = _hmt || [];
+	</script>
+
+</body>
+
+</html>
