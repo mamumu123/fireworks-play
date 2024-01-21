@@ -16,6 +16,8 @@
 
 <body onselectstart="return false">
 	<canvas id='cas' style="background-color:rgba(0,5,24,1)">浏览器不支持canvas</canvas>
+	<img src="moon.png" alt="" id="moon" style="visibility: hidden;" />
+
 	<script>
 		var canvas = document.getElementById("cas");
 		var ctx = canvas.getContext("2d");
@@ -28,6 +30,7 @@
 
 		function initAnimate () {
 			drawBg();
+			drawMoon();
 		}
 
 
@@ -40,6 +43,29 @@
 				var star = new Star(x, y, r);
 				stars.push(star);
 				star.paint();
+			}
+		}
+
+		function drawMoon () {
+			var moon = document.getElementById("moon");
+			var centerX = canvas.width - 200, centerY = 100, width = 80;
+			if (moon.complete) {
+				ctx.drawImage(moon, centerX, centerY, width, width);
+			}
+			else {
+				moon.onload = function () {
+					ctx.drawImage(moon, centerX, centerY, width, width);
+				};
+			}
+			var index = 0;
+			for (var i = 0; i < 10; i++) {
+				ctx.save();
+				ctx.beginPath();
+				ctx.arc(centerX + width / 2, centerY + width / 2, width / 2 + index, 0, 2 * Math.PI);
+				ctx.fillStyle = "rgba(240,219,120,0.005)";
+				index += 2;
+				ctx.fill();
+				ctx.restore();
 			}
 
 		}
