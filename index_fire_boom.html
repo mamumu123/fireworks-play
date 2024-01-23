@@ -1,0 +1,199 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+	<title>play</title>
+</head>
+
+<body onselectstart="return false">
+	<canvas id='cas' style="background-color:rgba(0,5,24,1)">浏览器不支持canvas</canvas>
+
+	<script>
+		var canvas = document.getElementById("cas");
+		var ctx = canvas.getContext("2d");
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		var bigbooms = [];
+
+		window.onload = function () {
+			initAnimate();
+		};
+
+		function initAnimate () {
+
+			lastTime = new Date();
+			index = 0;
+			animate();
+		}
+
+		function animate () {
+			var newTime = new Date();
+			if (newTime - lastTime > 1000 && index < 1) {
+				var bigboom = new Boom(
+					canvas.width / 2, 2, "#FFF",
+					{ x: canvas.width / 2, y: 200 },
+				);
+				bigbooms.push(bigboom);
+				lastTime = newTime;
+				index++;
+			}
+
+			bigbooms.foreach(function (index) {
+				var that = this;
+				if (!this.dead) { // move
+					this._move();
+				}
+				else { // boom
+					this.booms.foreach(function (index) {
+						if (!this.dead) {
+							this.moveTo(index);
+						}
+						else if (index === that.booms.length - 1) {
+							bigbooms[bigbooms.indexOf(that)] = null;
+						}
+					});
+				}
+			});
+
+			raf(animate);
+		}
+
+		Array.prototype.foreach = function (callback) {
+			for (var i = 0; i < this.length; i++) {
+				if (this[i] !== null) callback.apply(this[i], [i]);
+			}
+		};
+
+		var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) { window.setTimeout(callback, 1000 / 60); };
+
+		var Boom = function (x, r, c, boomArea, shape) {
+			this.booms = [];
+			this.x = x;
+			this.y = (canvas.height + r);
+			this.r = r;
+			this.c = c;
+			this.shape = shape || false;
+			this.boomArea = boomArea;
+			this.theta = 0;
+			this.dead = false;
+			this.ba = 100;
+		};
+		Boom.prototype = {
+			_paint: function () {
+				ctx.save();
+				ctx.beginPath();
+				ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
+				ctx.fillStyle = this.c;
+				ctx.fill();
+				ctx.restore();
+			},
+			_move: function () {
+				var dx = this.boomArea.x - this.x, dy = this.boomArea.y - this.y;
+				this.x = this.x + dx * 0.01;
+				this.y = this.y + dy * 0.01;
+
+				if (Math.abs(dx) <= this.ba && Math.abs(dy) <= this.ba) {
+					this._boom();
+					this.dead = true;
+				}
+				else {
+					this._paint();
+				}
+			},
+			_boom: function () {
+				// number 发散数量
+				var fragNum = getRandom(30, 200);
+				var style = getRandom(0, 10) >= 5 ? 1 : 2; // ??
+				console.log('style', style);// 
+				var color;
+
+				if (style === 1) { // 纯色
+					color = {
+						a: parseInt(getRandom(128, 255)),
+						b: parseInt(getRandom(128, 255)),
+						c: parseInt(getRandom(128, 255))
+					};
+				}
+				// 移动范围
+				var fanwei = parseInt(getRandom(300, 400));
+				for (var i = 0; i < fragNum; i++) {
+					if (style === 2) { // 彩色
+						color = {
+							a: parseInt(getRandom(128, 255)),
+							b: parseInt(getRandom(128, 255)),
+							c: parseInt(getRandom(128, 255))
+						};
+					}
+					// 方向
+					// 在 -π 到 π 之间生成一个随机角度
+					var a = getRandom(-Math.PI, Math.PI);
+					// 目标点 x ,y 坐标
+					// 根据随机角度和距离计算x坐标
+					var x = getRandom(0, fanwei) * Math.cos(a) + this.x;
+					// 根据随机角度和距离计算y坐标
+					var y = getRandom(0, fanwei) * Math.sin(a) + this.y;
+					// 在 0 到 2 之间生成一个随机半径
+					var radius = getRandom(0, 2);// 0 ～ 2 半径
+					var frag = new Frag(this.x, this.y, radius, color, x, y);
+					this.booms.push(frag);
+				}
+			},
+		};
+
+		function getRandom (a, b) {
+			return Math.random() * (b - a) + a;
+		}
+
+
+		var maxRadius = 1, stars = [];
+
+		var Frag = function (centerX, centerY, radius, color, tx, ty) {
+			this.tx = tx;
+			this.ty = ty;
+			this.x = centerX;
+			this.y = centerY;
+			this.dead = false;
+			this.centerX = centerX;
+			this.centerY = centerY;
+			this.radius = radius;
+			this.color = color;
+		};
+
+		Frag.prototype = {
+			// render
+			paint: function () {
+				ctx.save();
+				ctx.beginPath();
+				ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+				ctx.fillStyle = "rgba(" + this.color.a + "," + this.color.b + "," + this.color.c + ",1)";
+				ctx.fill();
+				ctx.restore();
+			},
+			moveTo: function (index) {
+				this.ty = this.ty + 0.3; // 下降
+				// 计算当前位置和目标位置的差值
+				var dx = this.tx - this.x, dy = this.ty - this.y;
+				// 到达圆之前，x,y 都动；
+				// 根据差值的大小，逐渐移动对象的x和y坐标
+				this.x = Math.abs(dx) < 0.1 ? this.tx : (this.x + dx * 0.1);
+				this.y = Math.abs(dy) < 0.1 ? this.ty : (this.y + dy * 0.1);
+				// 如果对象的x坐标和目标位置的x坐标相等，并且对象的y坐标和目标位置的y坐标之差小于等于80，则将对象标记为已完成（dead）
+				if (dx === 0 && Math.abs(dy) <= 80) {
+					this.dead = true;
+				}
+				this.paint();
+			}
+		}
+	</script>
+</body>
+
+</html>
