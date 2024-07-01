@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <canvas id="myCanvas" width="500" height="500" style="border:1px solid #d3d3d3;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
+  <script>
+    var canvas = document.getElementById('myCanvas');
+    var ctx = canvas.getContext('2d');
+
+    var img = new Image();
+    img.src = 'moon.png'; // 替换为你的图片URL
+    img.onload = function () {
+      var drawWidth = 0;
+      var interval = setInterval(function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除之前的绘制
+        ctx.drawImage(img, 0, 0, drawWidth, img.height, 0, 0, drawWidth, img.height); // 绘制图片的一部分
+        drawWidth++;
+        if (drawWidth > img.width) {
+          clearInterval(interval); // 如果已经绘制了整个图片，停止定时器
+        }
+      }, 50); // 每50毫秒绘制一次
+    };
+  </script>
+
+</body>
+
+</html>
